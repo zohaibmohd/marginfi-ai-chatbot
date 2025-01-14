@@ -1,0 +1,156 @@
+Below is a generic illustration of how to fix the Argument of type 'MarginfiGroup' is not assignable to parameter of type 'Marginfi' error. Ultimately, you need to pass whatever object the Bank.fromBuffer(...) method is expecting (often an internal “Marginfi” object, or a “Marginfi” + “feedMap” object), rather than MarginfiGroup.
+
+1. Why the Error Occurs
+
+Your code is calling:
+
+Bank.fromBuffer(
+  bankPubkey,
+  accountInfo.data,
+  marginfiGroup, // ❌ Not the correct type
+  feedIdMap
+);
+
+But the function signature likely looks like:
+
+static fromBuffer(
+  address: PublicKey,
+  buffer: Buffer,
+  marginfi: Marginfi,        // or a similarly typed object
+  feedIdMap: Map<string, PublicKey>
+): Bank
+
+In your version of the Marginfi SDK, the third parameter expects a type named Marginfi (or something that fulfills that interface). Meanwhile, you’re providing MarginfiGroup, which lacks the properties the function wants (like "metadata", "instructions", "accounts", etc.").
+
+Hence the TypeScript error:
+
+	“Argument of type ‘MarginfiGroup’ is not assignable to parameter of type ‘Marginfi’…”
+
+2. Identifying the Correct Object to Pass
+
+A. Could it be marginfiClient?
+
+In some SDK versions, MarginfiClient.fetch(...) returns a client object that can be passed in, if that client implements the Marginfi interface.
+
+You might try:
+
+const bank = Bank.fromBuffer(
+  bankPubkey,
+  accountInfo.data,
+  marginfiClient, // ✅ Possibly correct if marginfiClient satisfies 'Marginfi'
+  feedIdMap
+);
+
+But if you still see a type error, or your local docs say differently, read on.
+
+B. Or a property of the client (e.g. marginfiClient.marginfi or marginfiClient.internalMarginfi)
+
+Sometimes the actual “Marginfi” object is nested inside the client. For example:
+
+// Hypothetical example if marginfiClient has a property named 'marginfi' or 'internalMarginfi'
+Bank.fromBuffer(
+  bankPubkey,
+  accountInfo.data,
+  marginfiClient.marginfi, 
+  feedIdMap
+);
+
+C. Or a method call (e.g. marginfiClient.getMarginfi())
+
+In certain versions, you call a method to get the “Marginfi” object:
+
+const marginfiObj = marginfiClient.getMarginfi(); // or some method like that
+
+Bank.fromBuffer(
+  bankPubkey,
+  accountInfo.data,
+  marginfiObj, // the correct 'Marginfi' type
+  feedIdMap
+);
+
+3. Minimal Example Fix
+
+Below is an example script adopting the approach “B” or “C” above. (Replace the line that retrieves the correct marginfi object with whatever your local docs / console logs show.)
+
+import "dotenv/config";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Bank, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
+
+/** 
+ * If your code for 'feedIdMap' is correct: 
+ * const feedIdMap: Map<string, PublicKey> = new Map([...]);
+ */
+const feedIdMap: Map<string, PublicKey> = new Map();
+
+async function main() {
+  // 1. Create a Connection
+  const RPC_URL = process.env.MY_DEVNET_URL || "https://api.devnet.solana.com";
+  const connection = new Connection(RPC_URL, "confirmed");
+
+  // 2. Keypair, NodeWallet
+  const pkJson = process.env.SOLANA_PRIVATE_KEY_JSON ?? "[]";
+  const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(pkJson)));
+  const wallet = new NodeWallet(keypair);
+
+  // 3. Initialize marginfiClient
+  const config = getConfig("dev");
+  const marginfiClient = await MarginfiClient.fetch(config, wallet, connection);
+
+  // 4. Suppose the correct 'Marginfi' object is stored in marginfiClient.<someProperty>
+  //    Check your docs or console.log(marginfiClient). 
+  //    Below is hypothetical:
+  const marginfiObj = marginfiClient.marginfi || marginfiClient.internalMarginfi;
+
+  if (!marginfiObj) {
+    throw new Error("No suitable 'Marginfi' object found on marginfiClient!");
+  }
+
+  // 5. Fetch raw account data
+  const bankPubkey = new PublicKey("GtV5MNDFnw9oM5zup5vs21tgvzFRzvWe7hbdwUhhDLAT");
+  const accountInfo = await connection.getAccountInfo(bankPubkey);
+
+  if (!accountInfo) {
+    throw new Error(`No info for bank ${bankPubkey.toBase58()}`);
+  }
+
+  // 6. Decode with the correct 'Marginfi' object:
+  const bank = Bank.fromBuffer(
+    bankPubkey,
+    accountInfo.data,
+    marginfiObj, // <-- The real marginfi object
+    feedIdMap
+  );
+
+  // 7. Access metrics
+  const { lendingRate, borrowingRate } = bank.computeInterestRates();
+  console.log("Lending:", lendingRate.toNumber(), "Borrowing:", borrowingRate.toNumber());
+}
+
+main().catch(console.error);
+
+4. Checking the Official Marginfi Docs
+
+If your library version is quite new, you might see function signatures like:
+
+static fromBuffer(
+  address: PublicKey,
+  buffer: Buffer,
+  marginfiOrGroup: Marginfi | MarginfiGroup, // Overloaded
+  feedIdMap: Map<string, PublicKey>
+): Bank
+
+But your local error states it wants Marginfi, not MarginfiGroup. So your code’s marginfiGroup is the wrong object to pass. The Marginfi object is the correct one.
+
+Where to get it depends on your local version of @mrgnlabs/marginfi-client-v2.
+	•	Some older versions used MARGINFI_IDL as well.
+	•	The brand-new version might use a different approach.
+
+Hence the final solution: Pass the correct property from your marginfiClient that implements Marginfi. If you’re uncertain which property that is, check your library’s documentation or console.log the client to see if it has marginfiClient.marginfi.
+
+5. Summary
+	•	The Argument of type 'MarginfiGroup' is not assignable to parameter of type 'Marginfi' error means that you should pass the Marginfi-typed object from your client, not MarginfiGroup.
+	•	Many devs solve this by passing marginfiClient or marginfiClient.<someProperty> to Bank.fromBuffer.
+	•	If you’re stuck, console.log the client object or read the official doc for your exact version of Marginfi to see what you should provide.
+
+After adjusting that line, your code should compile and decode the bank properly. Happy building!

@@ -44,52 +44,45 @@ async function initializeMarginfi(): Promise<{
   return { client, connection };
 }
 
-/**
- * Gathers analytics from all Marginfi "Bank" accounts on-chain, filtered by mint addresses.
- */
+import { AccountType } from "@mrgnlabs/marginfi-client-v2";
+import { getMarginfiClient } from "./utils";
+
 export async function gatherBankAnalytics(): Promise<Array<Record<string, any>>> {
-  const { client, connection } = await initializeMarginfi();
-  const bankKeys = await client.getAllProgramAccountAddresses(AccountType.Bank);
+  try {
+    const client = await getMarginfiClient();
+    const bankKeys = await client.getAllProgramAccountAddresses(AccountType.Bank);
+    console.log(`Found ${bankKeys.length} banks.`);
 
-  console.log(`Found ${bankKeys.length} banks.`);
-  const results: Array<Record<string, any>> = [];
+    const results: Array<Record<string, any>> = [];
 
-  for (const pubkey of bankKeys) {
-    const accountInfo = await connection.getAccountInfo(pubkey);
-    if (!accountInfo || !accountInfo.data) {
-      console.warn(`Invalid account: ${pubkey.toBase58()}`);
-      continue;
-    }
-
-    try {
-      const feedIdMap = new Map(); // Placeholder, adjust as needed
-      const bank = Bank.fromBuffer(pubkey, accountInfo.data, MARGINFI_IDL as any, feedIdMap);
-
-      // Filter banks by known mint addresses
-      const mintAddress = bank.mint.toBase58();
-      if (!knownMints.has(mintAddress)) {
-        console.warn(`Skipping unknown mint: ${mintAddress} for bank ${pubkey.toBase58()}`);
+    for (const pubkey of bankKeys) {
+      const accountInfo = await client.connection.getAccountInfo(pubkey);
+      if (!accountInfo) {
+        console.warn(`No account info for bank: ${pubkey.toBase58()}`);
         continue;
       }
 
-      console.log(`Processing bank ${pubkey.toBase58()} with mint ${mintAddress}`);
+      const bank = client.getBankByPk(pubkey);
+      if (!bank) {
+        console.warn(`Could not decode bank: ${pubkey.toBase58()}`);
+        continue;
+      }
+
+      const { lendingRate, borrowingRate } = bank.computeInterestRates();
+      const utilization = bank.computeUtilizationRate();
 
       results.push({
         address: pubkey.toBase58(),
-        mint: mintAddress,
-        totalAssetShares: bank.totalAssetShares.toString(),
-        totalLiabilityShares: bank.totalLiabilityShares.toString(),
-        interestRates: {
-          depositRate: bank.computeInterestRates().lendingRate.toNumber(),
-          borrowRate: bank.computeInterestRates().borrowingRate.toNumber(),
-        },
-        utilizationRate: bank.computeUtilizationRate().toNumber(),
+        mint: bank.mint.toBase58(),
+        lendingRate: lendingRate.toNumber(),
+        borrowingRate: borrowingRate.toNumber(),
+        utilization: utilization.toNumber()
       });
-    } catch (err) {
-      console.error(`Error decoding bank ${pubkey.toBase58()}:`, err);
     }
-  }
 
-  console.log(`✅ Gathered metrics on ${results.length} banks total.`);
-  return results;
+    return results;
+  } catch (error) {
+    console.error("Error gathering bank analytics:", error);
+    throw error;
+  }
 }

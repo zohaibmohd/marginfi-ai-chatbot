@@ -47,15 +47,6 @@ const feedIdMap: Map<string, PublicKey> = new Map();
     const marginfiClient = await MarginfiClient.fetch(config, wallet, connection);
     console.log("🚀 MarginfiClient initialized on devnet!");
 
-    /**
-     * marginfiClient.group is (likely) your MarginfiGroup object
-     * needed as the 3rd argument in Bank.fromBuffer. If your library
-     * version differs, you may need a different property or method.
-     */
-    const marginfiGroup = marginfiClient.group;
-    if (!marginfiGroup) {
-      throw new Error("❌ marginfiClient.group is missing. Check your Marginfi SDK version.");
-    }
 
     // 5) Fetch the raw account data for the chosen bank
     const bankPubkey = new PublicKey(BANK_PUBKEY_STR);
@@ -64,14 +55,14 @@ const feedIdMap: Map<string, PublicKey> = new Map();
       throw new Error(`❌ No account info found for bank address: ${BANK_PUBKEY_STR}`);
     }
 
-    // 6) Decode the bank with fromBuffer + marginfiGroup + feedIdMap
+    // 6) Decode the bank with fromBuffer + marginfiClient + feedIdMap
     const bank = Bank.fromBuffer(
       bankPubkey,
       accountInfo.data,
-      marginfiGroup, // <-- Use the marginfiClient object if that is expected
+      marginfiClient,
       feedIdMap
     );
-    
+
     // 7) Retrieve rates & utilization
     const { lendingRate, borrowingRate } = bank.computeInterestRates();
     const utilization = bank.computeUtilizationRate();

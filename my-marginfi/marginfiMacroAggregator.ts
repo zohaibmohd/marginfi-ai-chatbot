@@ -9,7 +9,8 @@
  *   - Sums total TVL across all banks => prints results to console.
  */
 
-import { Connection } from "@solana/web3.js";
+import { Connection, Keypair } from "@solana/web3.js";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 import "dotenv/config";
@@ -26,8 +27,10 @@ async function main() {
   // 3) MarginFi production config => official mainnet group
   const marginfiConfig = getConfig("production");
 
-  // 4) Create MarginFi client read-only (no wallet needed)
-  const client = await MarginfiClient.fetch(marginfiConfig, undefined, connection);
+  // 4) Create MarginFi client with dummy wallet for read-only operations
+  const dummyKeypair = Keypair.generate();
+  const dummyWallet = new NodeWallet(dummyKeypair);
+  const client = await MarginfiClient.fetch(marginfiConfig, dummyWallet, connection);
 
   // We'll track total TVL across all banks
   let totalTvlAllBanks = new BigNumber(0);

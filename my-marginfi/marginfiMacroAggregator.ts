@@ -1,3 +1,4 @@
+
 /**
  * marginfiMacroAggregator.ts
  *
@@ -8,8 +9,9 @@
  *  - Summarizes total TVL for included banks at the end.
  */
 
-import { Connection } from "@solana/web3.js";
+import { Connection, Keypair } from "@solana/web3.js";
 import { MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import "dotenv/config";
 
@@ -25,14 +27,16 @@ async function main() {
   // 3) marginfi "production" config => mainnet group
   const marginfiConfig = getConfig("production");
 
-  // 4) Create read-only MarginFi client (no wallet needed)
-  const client = await MarginfiClient.fetch(marginfiConfig, undefined, connection);
+  // 4) Create dummy wallet for read-only operations
+  const dummyKeypair = Keypair.generate();
+  const dummyWallet = new NodeWallet(dummyKeypair);
+  const client = await MarginfiClient.fetch(marginfiConfig, dummyWallet, connection);
 
   // Convert the `client.banks` Map into an Array so we can sort/filter
   let bankArray = Array.from(client.banks.values());
 
   // 5) Filter out banks that are NOT "Active"
-  bankArray = bankArray.filter((bank) => bank.operationalState === "Active");
+  bankArray = bankArray.filter((bank) => bank.state === "Active");
 
   // 6) Sort by utilization descending
   bankArray.sort((a, b) => {
@@ -52,7 +56,6 @@ async function main() {
   );
 
   // 7) Optionally skip banks with extremely low utilization (< 0.5%)
-  // Comment out the next line if you want ALL active banks
   bankArray = bankArray.filter((bank) => {
     const utilNum = bank.computeUtilizationRate().toNumber() * 100;
     return utilNum > 0.5; // skip if under 0.5% utilization
@@ -69,7 +72,6 @@ async function main() {
 
     const oraclePrice = client.getOraclePriceByBank(bankAddr);
     if (!oraclePrice) {
-      // can't compute TVL if missing oracle
       console.log(`Bank => ${bankAddr}\n  ❌ Missing oracle => Skipping TVL calc.\n`);
       continue;
     }
@@ -88,7 +90,7 @@ async function main() {
     console.log("===== Bank Report =====");
     console.log(`Address => ${bankAddr}`);
     console.log(`Mint => ${mint}`);
-    console.log(`Operational State => ${bank.operationalState}`);
+    console.log(`State => ${bank.state}`);
     console.log(`TVL => $${tvl.toFixed(2)}`);
     console.log(`Utilization => ${utilization.toFixed(2)}%`);
 
@@ -96,12 +98,13 @@ async function main() {
     console.log(`Borrowing APY => ${borrowingRate.toFixed(2)}%`);
 
     console.log("Interest Rate Config =>", {
-      baseRate: irConfig.baseRate?.toNumber(),
-      minRate: irConfig.minRate?.toNumber(),
-      maxRate: irConfig.maxRate?.toNumber(),
-      util0: irConfig.util0?.toNumber(),
-      util1: irConfig.util1?.toNumber(),
-      kinks: irConfig.kinks?.map((k) => k.toNumber()),
+      optimalUtilizationRate: irConfig.optimalUtilizationRate?.toNumber(),
+      plateauInterestRate: irConfig.plateauInterestRate?.toNumber(),
+      maxInterestRate: irConfig.maxInterestRate?.toNumber(),
+      insuranceFeeFixedApr: irConfig.insuranceFeeFixedApr?.toNumber(),
+      insuranceIrFee: irConfig.insuranceIrFee?.toNumber(),
+      protocolFixedFeeApr: irConfig.protocolFixedFeeApr?.toNumber(),
+      protocolIrFee: irConfig.protocolIrFee?.toNumber(),
     });
 
     console.log("--------------------------------------------\n");

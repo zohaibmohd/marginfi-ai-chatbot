@@ -37,7 +37,7 @@ async function main() {
   // 5) Filter out banks that are NOT "Active"
   //    The correct enum value is OperationalState.Active, not ACTIVE
   bankArray = bankArray.filter(
-    (bank) => bank.config.operationalState === OperationalState.Active
+    (bank) => bank.config.operationalState === "Active"
   );
 
   // 6) Sort by utilization descending

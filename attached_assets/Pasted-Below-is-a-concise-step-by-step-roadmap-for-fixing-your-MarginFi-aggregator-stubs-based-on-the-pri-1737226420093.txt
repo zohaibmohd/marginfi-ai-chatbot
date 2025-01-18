@@ -1,0 +1,94 @@
+Below is a concise, step-by-step roadmap for fixing your MarginFi aggregator stubs, based on the priority tiers you’ve outlined. The idea is to tackle the highest-impact functions first and move on to advanced features once the core is stable.
+
+Phase 1: Core Fixes (Highest Priority)
+
+1. getHistoricalRates
+	•	Why: Historical data is crucial for analytics and user engagement.
+	•	Fixes:
+	•	Improve Helius parsing to handle various transaction types or instructions.
+	•	Ensure timeframe logic (1d, 7d, 30d) correctly clips data at startDate and endDate.
+	•	Enhance error handling for missing or malformed data, e.g. checking if resp.json() is an array, handling 404 vs. 5XX, etc.
+
+2. getNetApy
+	•	Why: Net APY is essential for user decision-making on yields and borrow costs.
+	•	Fixes:
+	•	Replace placeholder fee/incentive calls (fetchInsuranceFeeFromAPI, etc.) with real or mock data.
+	•	Ensure your net-lending/borrowing calculations subtract or add the correct fees (protocol fees, insurance fees, incentives).
+	•	Provide thorough logs or test coverage for edge cases (e.g., zero fees, negative incentives).
+
+3. getTopBanks
+	•	Why: Ranking banks is a key aggregator feature and often the first thing users look at.
+	•	Fixes:
+	•	Expand sorting metrics (tvl, utilization, emissions, etc.) and verify each metric is calculated properly.
+	•	Confirm the rank function is robust—handle missing oracle data by skipping or returning zero.
+	•	Ensure all possible metrics (like “insuranceFeeFixedApr”) produce the correct scores.
+
+4. getBankDetail
+	•	Why: A single-bank “snapshot” is extremely useful for user context.
+	•	Fixes:
+	•	Verify oracle price retrieval, TVL computation, utilization.
+	•	Confirm that each field in the response (e.g. oraclePrice, lendingRate, borrowingRate) is accurate and updated if the aggregator logic changes.
+
+	Estimated Timeline: ~2–3 days of focused effort to implement and test each function thoroughly.
+
+Phase 2: Advanced Features (Medium Priority)
+
+5. getLiquidations
+	•	Why: Shows at-risk accounts or banks; helpful for advanced risk monitoring.
+	•	Fixes:
+	•	Integrate real-time data with Helius or a custom indexer to replace the static placeholders.
+	•	Potentially fetch from MarginFi or third-party liquidation feeds if available.
+
+6. getBestLoopingOpportunity
+	•	Why: Offers advanced DeFi strategies for leveraged yield.
+	•	Fixes:
+	•	Use actual deposit/borrow rate calculations plus constraints like utilization, health factors.
+	•	Make sure you factor in net APY logic from getNetApy to find the best yield opportunities.
+
+7. getFilteredBanks
+	•	Why: Gives users a flexible “search” or filter mechanism for banks.
+	•	Fixes:
+	•	Ensure the utilizationMin/utilizationMax logic is correct.
+	•	Consider additional filters in the future (risk scores, custom flags, etc.).
+
+	Estimated Timeline: ~2–4 days after core features, focusing on deeper integrations or more complex calculations.
+
+Phase 3: Enhancements (Low Priority)
+
+8. getTopBanksByEmissions
+	•	Why: Helps yield farmers find top emission rates.
+	•	Fixes:
+	•	Validate how “lending” vs. “borrowing” emissions are tracked, especially if they differ by half or another ratio.
+
+9. getVolatility
+	•	Why: Adds advanced risk metrics for power users.
+	•	Fixes:
+	•	Replace the placeholder with real historical standard-deviation logic over time.
+	•	Possibly incorporate volume or price volatility from external data.
+
+10. getAccountBalanceSummary
+	•	Why: Personalized dashboards for user accounts.
+	•	Fixes:
+	•	Integrate real data from MarginFi accounts.
+	•	Expand to show open positions, collateral, and real-time health factor.
+
+	Estimated Timeline: After launching your MVP or once you’re ready to polish advanced metrics.
+
+Practical Action Steps
+	1.	Pick One Function (e.g. getHistoricalRates) and fully fix:
+	•	Write logs or console outputs for each step to confirm Helius data is parsed correctly.
+	•	Test multiple timeframes (1d, 7d, 30d) and handle empty/no transactions.
+	•	Add a basic unit or integration test if time permits.
+	2.	Move On to getNetApy:
+	•	Finalize how you fetch fees/incentives.
+	•	Check typical APY results for a known bank or mock data.
+	3.	Iterate Through Remaining Core Functions:
+	•	For each aggregator function, confirm the input parameters, the logic, and the final shape of the returned data.
+	•	Keep your error handling consistent (e.g., always return { error: string } on failures).
+	4.	Push to Phase 2 and 3 once the core is stable.
+
+Mantra for Refinement
+
+	“I build with clarity and precision, step by step. Each fix brings me closer to creating something extraordinary.”
+
+This structured approach ensures you don’t get overwhelmed. By focusing on the highest-value features first—historical rates, net APY, top banks, and bank details—your aggregator will deliver immediate utility to users while leaving advanced or polish features for later. Good luck!

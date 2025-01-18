@@ -36,7 +36,7 @@ async function main() {
   let bankArray = Array.from(client.banks.values());
 
   // 5) Filter out banks that are NOT "Active"
-  bankArray = bankArray.filter((bank) => bank.state === "Active");
+  bankArray = bankArray.filter((bank) => bank.operationalState === "Active");
 
   // 6) Sort by utilization descending
   bankArray.sort((a, b) => {
@@ -90,7 +90,7 @@ async function main() {
     console.log("===== Bank Report =====");
     console.log(`Address => ${bankAddr}`);
     console.log(`Mint => ${mint}`);
-    console.log(`State => ${bank.state}`);
+    console.log(`State => ${bank.operationalState}`);
     console.log(`TVL => $${tvl.toFixed(2)}`);
     console.log(`Utilization => ${utilization.toFixed(2)}%`);
 

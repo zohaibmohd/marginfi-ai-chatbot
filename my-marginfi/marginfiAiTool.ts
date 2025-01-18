@@ -276,6 +276,9 @@ async function fetchRealHistoricalRates(
         throw new Error(`Helius fetch error => ${resp.status}: ${errorTxt}`);
       }
       data = await resp.json();
+      // DEBUG LOG: Inspect the raw Helius response
+      console.log("\n[DEBUG] Helius raw data =>", JSON.stringify(data, null, 2));
+
       if (!Array.isArray(data)) {
         console.warn("Helius returned non-array =>", data);
         break;
@@ -327,6 +330,9 @@ function extractRatesFromTransactions(
 }
 
 function parseRates(events: any) {
+  // DEBUG LOG: Inspect the raw events
+  console.log("[DEBUG] parseRates => events:", JSON.stringify(events, null, 2));
+
   let lendingRate: number | null = null;
   let borrowingRate: number | null = null;
 
@@ -401,8 +407,21 @@ async function computeRealNetApy(bankAddress: string) {
     console.warn("Error fetching incentives:", error);
   }
 
+  // --- DEBUG LOGS ---
+  console.log("==== computeRealNetApy DEBUG ====");
+  console.log("bankAddress =>", bankAddress);
+  console.log("lendingRate =>", lendingRate.toNumber());
+  console.log("borrowingRate =>", borrowingRate.toNumber());
+  console.log("protocolFeeApr =>", protocolFeeApr);
+  console.log("insuranceFee =>", insuranceFee);
+  console.log("incentives =>", incentives);
+
   const netLending = lendingRate.toNumber() - protocolFeeApr - insuranceFee + incentives;
   const netBorrowing = borrowingRate.toNumber() + protocolFeeApr + insuranceFee - incentives;
+
+  console.log("netLending =>", netLending);
+  console.log("netBorrowing =>", netBorrowing);
+  console.log("==============================\n");
 
   return { netLending, netBorrowing };
 }

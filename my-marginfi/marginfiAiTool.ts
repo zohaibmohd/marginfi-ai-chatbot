@@ -168,8 +168,19 @@ export async function getBankDetail(args: BankDetailArgs) {
     tvlStr = bank.computeTvl(rawOracle).toFixed(2);
   }
 
-  // if rawOracle is null => 0
-  const numericPrice = rawOracle instanceof BigNumber ? rawOracle.toNumber() : 0;
+  let numericPrice = 0;
+  if (rawOracle) {
+    try {
+      // Handle both BigNumber and raw numeric types
+      numericPrice = typeof rawOracle.toNumber === 'function' 
+        ? rawOracle.toNumber() 
+        : typeof rawOracle === 'number' 
+          ? rawOracle 
+          : 0;
+    } catch (err) {
+      console.warn('Failed to convert oracle price:', err);
+    }
+  }
   const oraclePriceStr = numericPrice !== 0 ? numericPrice.toFixed(6) : "N/A";
 
   return {

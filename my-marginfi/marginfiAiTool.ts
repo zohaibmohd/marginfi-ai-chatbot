@@ -23,7 +23,8 @@ import type { Bank as MrgnBank, OraclePrice as MrgnOraclePrice } from "@mrgnlabs
  * OraclePrice from marginfi is typically BigNumber or null (some code may still expect a union).
  */
 export type Bank = MrgnBank;
-export type OraclePrice = MrgnOraclePrice | number | BigNumber; // Usually BigNumber from marginfi
+// We'll use the marginfi-client-v2 OraclePrice type directly
+export type OraclePrice = MrgnOraclePrice;
 
 /* -----------------------------------------------------------------------
  * Helper Functions
@@ -103,7 +104,7 @@ export async function getTopBanks(args: TopBanksArgs) {
       case "tvl": {
         const op = client.getOraclePriceByBank(addr);
         if (!op) return 0;
-        return bank.computeTvl(op as OraclePrice).toNumber();
+        return bank.computeTvl(op).toNumber();
       }
       case "utilization":
         return bank.computeUtilizationRate().toNumber();
@@ -158,7 +159,7 @@ export async function getTotalTvl(_args: TotalTvlArgs) {
   for (const [addr, bank] of client.banks.entries()) {
     const oraclePrice = client.getOraclePriceByBank(addr);
     if (!oraclePrice) continue;
-    totalNumeric = totalNumeric.plus(bank.computeTvl(oraclePrice as OraclePrice));
+    totalNumeric = totalNumeric.plus(bank.computeTvl(oraclePrice));
   }
 
   return {
@@ -198,7 +199,7 @@ export async function getBankDetail(args: BankDetailArgs) {
   let tvlStr = "0";
   const rawOracle = client.getOraclePriceByBank(foundBankAddr);
   if (rawOracle) {
-    tvlStr = bank.computeTvl(rawOracle as OraclePrice).toFixed(2);
+    tvlStr = bank.computeTvl(rawOracle).toFixed(2);
   }
 
   // Oracle Price

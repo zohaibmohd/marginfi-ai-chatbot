@@ -169,7 +169,7 @@ export async function getBankDetail(args: BankDetailArgs) {
   }
 
   // if rawOracle is null => 0
-  const numericPrice = rawOracle ? rawOracle.toNumber() : 0;
+  const numericPrice = rawOracle instanceof BigNumber ? rawOracle.toNumber() : 0;
   const oraclePriceStr = numericPrice !== 0 ? numericPrice.toFixed(6) : "N/A";
 
   return {

@@ -1,81 +1,62 @@
 import "dotenv/config";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { Bank, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { NodeWallet } from "@mrgnlabs/mrgn-common";
+import { getMarginfiClient } from "./utils/marginfiClient";
+import { PublicKey } from "@solana/web3.js";
 
-/************************************************************
- * 1. CONFIG & CONSTANTS
- ************************************************************/
-const RPC_URL = process.env.MY_DEVNET_URL || "https://api.devnet.solana.com";
-
-/**
- * Example bank address discovered on Devnet. Replace with whichever
- * is valid for your environment. For instance:
- *  GtV5MNDFnw9oM5zup5vs21tgvzFRzvWe7hbdwUhhDLAT
- */
-const BANK_PUBKEY_STR = "GtV5MNDFnw9oM5zup5vs21tgvzFRzvWe7hbdwUhhDLAT";
-
-/**
- * If you have an actual feed ID map, populate this with real values.
- * Example of a valid type: new Map<string, PublicKey>([["someKey", new PublicKey("...")]]);
- */
-const feedIdMap: Map<string, PublicKey> = new Map();
-
-/************************************************************
- * 2. MAIN FUNCTION: DECODE A SINGLE MARGINFI BANK
- ************************************************************/
-(async () => {
+async function main() {
   try {
-    // 1) Connect to Solana devnet
-    const connection = new Connection(RPC_URL, "confirmed");
-    console.log(`🔗 Connected to Devnet: ${RPC_URL}`);
+    // 1) Build the MarginfiClient
+    const client = await getMarginfiClient();
+    console.log(`✅ Loaded MarginfiClient on environment: ${client.config.environment}\n`);
 
-    // 2) Load keypair from .env
-    const rawKey = process.env.SOLANA_PRIVATE_KEY_JSON;
-    if (!rawKey) {
-      throw new Error("❌ Missing SOLANA_PRIVATE_KEY_JSON in .env!");
-    }
-    const secretKey = new Uint8Array(JSON.parse(rawKey));
-    const keypair = Keypair.fromSecretKey(secretKey);
-
-    // 3) Create a NodeWallet
-    const wallet = new NodeWallet(keypair);
-    console.log(`🔑 Wallet loaded. Public key: ${wallet.publicKey.toBase58()}`);
-
-    // 4) Initialize Marginfi client for Devnet
-    const config = getConfig("dev");
-    const marginfiClient = await MarginfiClient.fetch(config, wallet, connection);
-    console.log("🚀 MarginfiClient initialized on devnet!");
-
-
-    // 5) Fetch the raw account data for the chosen bank
-    const bankPubkey = new PublicKey(BANK_PUBKEY_STR);
-    const accountInfo = await connection.getAccountInfo(bankPubkey);
-    if (!accountInfo) {
-      throw new Error(`❌ No account info found for bank address: ${BANK_PUBKEY_STR}`);
+    // 2) Fetch all banks known to the client
+    const bankEntries = Array.from(client.banks.entries());
+    if (bankEntries.length === 0) {
+      throw new Error("No banks found via marginfiClient.banks. Check your environment setup.");
     }
 
-    // 6) Decode the bank with fromBuffer + marginfiClient + feedIdMap
-    const bank = Bank.fromBuffer(
-      bankPubkey,
-      accountInfo.data,
-      marginfiClient,
-      feedIdMap
-    );
+    console.log(`🔎 Found ${bankEntries.length} banks.\n`);
 
-    // 7) Retrieve rates & utilization
-    const { lendingRate, borrowingRate } = bank.computeInterestRates();
-    const utilization = bank.computeUtilizationRate();
+    // 3) Iterate through all banks & print their key metrics
+    for (const [bankAddress, bank] of bankEntries) {
+      const { lendingRate, borrowingRate } = bank.computeInterestRates();
+      const utilization = bank.computeUtilizationRate();
 
-    // 8) Print out results
-    console.log("✅ Decoded Bank =>", bankPubkey.toBase58());
-    console.log("   Mint =>", bank.mint.toBase58());
-    console.log("   Lending Rate =>", lendingRate.toNumber());
-    console.log("   Borrowing Rate =>", borrowingRate.toNumber());
-    console.log("   Utilization =>", utilization.toNumber());
+      // If the bank has a tokenSymbol, print it, otherwise show "undefined"
+      console.log(`Bank: ${bankAddress} (symbol: ${bank.tokenSymbol ?? "undefined"})`);
+      console.log(`  Mint:           ${bank.mint.toBase58()}`);
+      console.log(`  Lending Rate:   ${lendingRate.toNumber().toFixed(2)}%`);
+      console.log(`  Borrowing Rate: ${borrowingRate.toNumber().toFixed(2)}%`);
+      console.log(`  Utilization:    ${utilization.toNumber().toFixed(2)}%`);
+      console.log("--------------------------------------------------------\n");
+    }
 
-    console.log("\n✨ Decoding complete! Enjoy building on Marginfi. 🚀");
+    // 4A) Attempt: getBankByTokenSymbol("SOL")
+    const bankSymbol = "SOL";
+    const solBankBySymbol = client.getBankByTokenSymbol(bankSymbol);
+    if (!solBankBySymbol) {
+      console.warn(`⚠️ \`getBankByTokenSymbol("${bankSymbol}")\` => null. No bank has tokenSymbol = "SOL"`);
+    } else {
+      const { lendingRate, borrowingRate } = solBankBySymbol.computeInterestRates();
+      console.log(`\n✨ Single Bank [${bankSymbol}] => ${solBankBySymbol.address.toBase58()}`);
+      console.log(`   Lending Rate:   ${lendingRate.toNumber().toFixed(2)}%`);
+      console.log(`   Borrowing Rate: ${borrowingRate.toNumber().toFixed(2)}%`);
+    }
+
+    // 4B) Alternative: getBankByMint( So1111... ) => should actually find your SOL bank
+    const solMintPubkey = new PublicKey("So11111111111111111111111111111111111111112");
+    const solBankByMint = client.getBankByMint(solMintPubkey);
+    if (!solBankByMint) {
+      console.warn(`⚠️ \`getBankByMint("${solMintPubkey}")\` => null. Strange, no bank minted with wrapped SOL.`);
+    } else {
+      const { lendingRate, borrowingRate } = solBankByMint.computeInterestRates();
+      console.log(`\n✨ Single Bank by Mint [So111...] => ${solBankByMint.address.toBase58()}`);
+      console.log(`   Lending Rate:   ${lendingRate.toNumber().toFixed(2)}%`);
+      console.log(`   Borrowing Rate: ${borrowingRate.toNumber().toFixed(2)}%`);
+    }
+
   } catch (err) {
     console.error("❌ Script Error:", err instanceof Error ? err.message : err);
   }
-})();
+}
+
+main();

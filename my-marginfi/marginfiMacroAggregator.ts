@@ -37,7 +37,7 @@ async function main() {
   let bankArray = Array.from(client.banks.values());
 
   // 5) Filter out banks that are NOT "Active"
-  bankArray = bankArray.filter((bank) => bank.config.operationalState === OperationalState.Active);
+  bankArray = bankArray.filter((bank) => bank.config.operationalState === OperationalState.ACTIVE);
 
   // 6) Sort by utilization descending
   bankArray.sort((a, b) => {

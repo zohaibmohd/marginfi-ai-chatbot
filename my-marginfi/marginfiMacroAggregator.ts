@@ -12,6 +12,7 @@
 import { Connection, Keypair } from "@solana/web3.js";
 import { MarginfiClient, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
+import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 import "dotenv/config";
 
@@ -36,7 +37,7 @@ async function main() {
   let bankArray = Array.from(client.banks.values());
 
   // 5) Filter out banks that are NOT "Active"
-  bankArray = bankArray.filter((bank) => bank.config.operationalState === "Active");
+  bankArray = bankArray.filter((bank) => bank.config.operationalState === OperationalState.Active);
 
   // 6) Sort by utilization descending
   bankArray.sort((a, b) => {

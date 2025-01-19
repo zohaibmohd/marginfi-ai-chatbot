@@ -1,4 +1,7 @@
-// marginfiMacroAggregator.ts
+// backend/src/marginfiMacroAggregator.ts
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 import { MarginfiClient, getConfig, MarginRequirementType, PriceBias, RiskTier } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";

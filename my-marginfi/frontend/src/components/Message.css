@@ -1,0 +1,33 @@
+/* frontend/src/components/Message.css */
+
+.message {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message.bot {
+  justify-content: flex-start;
+}
+
+.message-text {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  background-color: #e0e0e0;
+  color: #333;
+  word-wrap: break-word;
+}
+
+.message.user .message-text {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.message.bot .message-text {
+  background-color: #f1f0f0;
+  color: #333;
+}

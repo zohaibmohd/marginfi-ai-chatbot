@@ -33,11 +33,11 @@ The MarginFi AI Chatbot is a conversational assistant designed to provide real-t
 
 The chatbot is currently hosted on Replit for 24/7 availability.
 
-**Replit Link (Live Demo):** [MarginFi AI Chatbot](YOUR_REPLIT_LINK_HERE)
+**Replit Link (Live Demo):** [MarginFi AI Chatbot](https://marginfi-ai-kit-zohaibmohd.replit.app)
 
 ## Repository
 
-**GitHub Repository:** [MarginFi AI Chatbot](YOUR_GITHUB_REPOSITORY_LINK_HERE)
+**GitHub Repository:** [MarginFi AI Chatbot](https://github.com/zohaibmohd/marginfi-ai-chatbot)
 
 ## Usage Examples
 
@@ -174,4 +174,4 @@ Contributions are welcome! Here's how you can contribute:
 *   **Email:** zohaib.m323@gmail.com
 *   **GitHub:** [zohaibmohd](https://github.com/zohaibmohd)
 
-For questions or issues, feel free to [open an issue](ttps://github.com/zohaibmohd/issues) or reach out via email.
+For questions or issues, feel free to [open an issue](https://github.com/zohaibmohd/marginfi-ai-chatbot/issues) or reach out via email.

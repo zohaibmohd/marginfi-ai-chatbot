@@ -1,17 +1,15 @@
 // frontend/src/components/Message.tsx
-
 import React from 'react';
-import './Message.css';
 
-interface Props {
+interface MessageProps {
   sender: 'user' | 'bot';
   text: string;
 }
 
-const Message: React.FC<Props> = ({ sender, text }) => {
+const Message: React.FC<MessageProps> = ({ sender, text }) => {
   return (
     <div className={`message ${sender}`}>
-      <div className="message-text">{text}</div>
+      {text}
     </div>
   );
 };

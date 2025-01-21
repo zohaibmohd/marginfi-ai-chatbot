@@ -1,31 +1,35 @@
+// backend/src/app.ts
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import chatRouter from './routes/chat';
 
-dotenv.config();
-
 const app = express();
 
-// Enable CORS for the frontend origin
-app.use(cors({
-  origin: 'https://cbdc270c-1e23-48d1-8536-9abef23748f0-00-rzp48oi2o60k.picard.replit.dev', // Replace with your frontend's URL if different
-  methods: ['GET', 'POST'],
-  credentials: true
-}));
+// Configure CORS for your Replit domain (or another domain you prefer)
+app.use(
+  cors({
+    origin: 'https://marginfi-ai-kit-zohaibmohd.replit.app',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  })
+);
 
+// Parse JSON bodies
 app.use(express.json());
 
-// Serve static files from the frontend's build directory
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// Serve the frontend's compiled dist folder
+const FRONTEND_DIST_PATH = path.resolve(__dirname, '..', '..', 'frontend', 'dist');
+console.log('[App] Serving static files from:', FRONTEND_DIST_PATH);
+app.use(express.static(FRONTEND_DIST_PATH));
 
-// API Routes
+// Attach the chatbot route at /api/chat
 app.use('/api/chat', chatRouter);
 
-// For any other route, serve the frontend's index.html
+// Catch-all: send index.html for any unknown route (useful for React SPA)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  res.sendFile(path.join(FRONTEND_DIST_PATH, 'index.html'));
 });
 
 export default app;

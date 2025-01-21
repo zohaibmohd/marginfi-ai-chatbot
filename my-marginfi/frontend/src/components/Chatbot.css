@@ -1,65 +1,160 @@
-/* frontend/src/components/Chatbot.css */
+/* my-marginfi/frontend/src/components/Chatbot.css */
+
+/* Color Theme */
+:root {
+  --solana-bg: #131620;        /* Dark background */
+  --solana-primary: #9945ff;   /* Purple highlight */
+  --solana-secondary: #14f195; /* Teal highlight */
+  --solana-text: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0; 
+  padding: 0;
+}
 
 .chatbot-container {
+  width: 400px;
+  margin: 2rem auto;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 600px;
-  height: 80vh;
-  border: 1px solid #ccc;
+  background: var(--solana-bg);
+  border: 1px solid var(--solana-primary);
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 20px auto;
-  font-family: Arial, sans-serif;
-  background-color: #ffffff;
+  box-shadow: 0 0 12px rgba(153, 69, 255, 0.3);
+  color: var(--solana-text);
+  font-family: 'Inter', sans-serif; /* or any modern font */
+  overflow: hidden; /* ensure the container has clean rounded corners */
 }
 
+/* Header */
 .chatbot-header {
-  background-color: #4a90e2;
-  color: white;
-  padding: 16px;
+  background: linear-gradient(90deg, var(--solana-primary), var(--solana-secondary));
+  padding: 1rem;
   text-align: center;
+  border-bottom: 1px solid #262a38;
+  text-shadow: 0 0 5px rgba(20, 241, 149, 0.3);
 }
 
+.chatbot-header h2 {
+  margin: 0;
+}
+
+/* Messages container */
 .chatbot-messages {
   flex: 1;
-  padding: 16px;
-  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
   overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--solana-secondary) var(--solana-bg);
 }
 
+/* Scrollbar styling (WebKit) */
+.chatbot-messages::-webkit-scrollbar {
+  width: 6px;
+}
+.chatbot-messages::-webkit-scrollbar-track {
+  background: #1a1f2a;
+}
+.chatbot-messages::-webkit-scrollbar-thumb {
+  background: var(--solana-secondary);
+  border-radius: 3px;
+}
+
+/* Each message bubble */
+.message {
+  max-width: 75%;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+/* User (right-aligned) */
+.message.user {
+  align-self: flex-end;
+  background: rgba(153, 69, 255, 0.2);
+  border: 1px solid var(--solana-primary);
+  text-align: right;
+  color: #cdbdff;
+  animation: fadeInUp 0.2s ease-in;
+}
+
+/* Bot (left-aligned) */
+.message.bot {
+  align-self: flex-start;
+  background: rgba(20, 241, 149, 0.2);
+  border: 1px solid var(--solana-secondary);
+  text-align: left;
+  color: #afffe0;
+  animation: fadeInUp 0.2s ease-in;
+}
+
+/* Simple fade-in-up for messages */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input row */
 .chatbot-input {
   display: flex;
-  border-top: 1px solid #ccc;
-  padding: 8px;
-  background-color: #fff;
+  padding: 0.75rem;
+  border-top: 1px solid #262a38;
+  background-color: #1a1f2a;
 }
 
 .chatbot-input input {
   flex: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  margin-right: 8px;
+  padding: 0.5rem 0.75rem;
+  background: #262a38;
+  border: 1px solid #444b5c;
+  border-radius: 4px;
+  color: #fff;
   outline: none;
 }
 
+.chatbot-input input::placeholder {
+  color: #777;
+}
+
+/* on focus */
+.chatbot-input input:focus {
+  border-color: var(--solana-primary);
+}
+
+/* Send button */
 .chatbot-input button {
-  padding: 12px 20px;
-  background-color: #4a90e2;
-  color: white;
+  margin-left: 0.5rem;
+  padding: 0.5rem 1rem;
   border: none;
-  border-radius: 20px;
+  border-radius: 4px;
+  background: var(--solana-primary);
+  color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s, transform 0.1s;
 }
 
 .chatbot-input button:hover {
-  background-color: #357ab8;
+  background: var(--solana-secondary);
+}
+
+.chatbot-input button:active {
+  transform: scale(0.98);
 }
 
 .chatbot-input button:disabled {
-  background-color: #a0c4e2;
+  background: #5f5c5c;
   cursor: not-allowed;
 }

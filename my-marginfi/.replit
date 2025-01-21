@@ -1,0 +1,7 @@
+# .replit
+
+# The command Replit runs when you hit "Run" or deploy
+run = "cd backend && npm install && npm run build && npm start"
+
+# We can remove or ignore 'entrypoint', so it's not searching for a nonexistent index.js.
+# If you do have an "entrypoint = ..." line, you can remove or comment it out.

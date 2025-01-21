@@ -136,3 +136,8 @@ dist
 .env
 frontend/.env
 backend/.env
+node_modules/
+dist/
+.env
+archive/
+attached_assets/

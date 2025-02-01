@@ -2,7 +2,7 @@
 
 ## Overview
 
-The marginfi AI Chatbot is a conversational assistant designed to provide real-time insights into the MarginFi protocol on Solana. It retrieves and summarizes data about banks, assets, liabilities, and APYs, allowing users to explore marginfi through a simple chat interface.
+The marginfi AI Chatbot is a conversational assistant designed to provide real-time insights into the marginfi protocol on Solana. It retrieves and summarizes data about banks, assets, liabilities, and APYs, allowing users to explore marginfi through a simple chat interface.
 
 ## Key Features
 

@@ -1,13 +1,13 @@
-# MarginFi AI Chatbot
+# marginfi AI Chatbot
 
 ## Overview
 
-The MarginFi AI Chatbot is a conversational assistant designed to provide real-time insights into the MarginFi protocol on Solana. It retrieves and summarizes data about banks, assets, liabilities, and APYs, allowing users to explore MarginFi through a simple chat interface.
+The marginfi AI Chatbot is a conversational assistant designed to provide real-time insights into the MarginFi protocol on Solana. It retrieves and summarizes data about banks, assets, liabilities, and APYs, allowing users to explore marginfi through a simple chat interface.
 
 ## Key Features
 
 *   **Conversational Queries:** Understands and responds to natural language questions like "top banks by assets," "total liabilities," or "What is JitoSOL?".
-*   **Real-Time Data:** Fetches fresh data from the MarginFi protocol (via Helius RPC) every 60 seconds and caches it for quick responses.
+*   **Real-Time Data:** Fetches fresh data from the marginfi protocol (via Helius RPC) every 60 seconds and caches it for quick responses.
 *   **Session Awareness:** Maintains context for follow-up queries within a single chat session.
 *   **Markdown Formatting:** Uses simple markdown formatting for a readable display of data and metrics.
 

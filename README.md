@@ -29,12 +29,6 @@ The marginfi AI Chatbot is a conversational assistant designed to provide real-t
     *   Sends user queries to the backend (`/api/chat`).
     *   Displays the AI's responses in real time.
 
-## Deployment
-
-The chatbot is currently hosted on Replit for 24/7 availability.
-
-**Replit Link (Live Demo):** [MarginFi AI Chatbot](https://marginfi-ai-kit-zohaibmohd.replit.app)
-
 ## Repository
 
 **GitHub Repository:** [MarginFi AI Chatbot](https://github.com/zohaibmohd/marginfi-ai-chatbot)
